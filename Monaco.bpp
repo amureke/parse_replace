@@ -1,0 +1,655 @@
+[HEADER]
+TYPE=BPP
+VER=150
+
+[DESCRIPTION]
+|
+
+[VARIABLES]
+PAN=LPX|900||4|
+PAN=LPY|255||4|
+PAN=LPZ|19||4|
+PAN=ORLST|""||3|
+PAN=SIMMETRY|1||1|
+PAN=TLCHK|0||1|
+PAN=TOOLING|""||3|
+PAN=CUSTSTR|$B$KBsExportToNcRvA.XncExtraPanelData$V""||3|
+PAN=FCN|1.000000||2|
+PAN=XCUT|0||4|
+PAN=YCUT|0||4|
+PAN=JIGTH|0||4|
+PAN=CKOP|0||1|
+PAN=UNIQUE|0||1|
+PAN=MATERIAL|"wood"||3|
+PAN=PUTLST|""||3|
+PAN=OPPWKRS|0||1|
+PAN=UNICLAMP|0||1|
+PAN=CHKCOLL|0||1|
+PAN=WTPIANI|0||1|
+PAN=COLLTOOL|0||1|
+PAN=CALCEDTH|0||1|
+PAN=ENABLELABEL|0||1|
+PAN=LOCKWASTE|0||1|
+PAN=LOADEDGEOPT|0||1|
+PAN=ITLTYPE|0||1|
+PAN=RUNPAV|0||1|
+PAN=FLIPEND|0||1|
+PAN=ENABLEMACHLINKS|0||1|
+PAN=ENABLEPURSUITS|0||1|
+PAN=ENABLEFASTVERTBORINGS|0||1|
+PAN=FASTVERTBORINGSVALUE|0||4|
+
+[PROGRAM]
+Dim outside, hingside, CornerRef, Doortype, Outsiderad, Paneltype, paneldep, StileW, RailW, InsideT, panelspeed, numvpanels, numhpanels, LeftStileW, RightStileW, Railwtop, Railwbottom, outsidetooldepth, Insiderad
+Dim Vrepeat, outsidefdepth, Vbitdepth, PanelWidth, PanelLength, panelsteps, Panelthick, text
+Dim Handlewidth, Handledepth, location, MetalHandle
+
+Dim i, Limit, Xend, POKETINS, ROUTRAD, POKETOFF, QTYPASS, POKETDIA
+
+' OFFSET, "", "", 175420892, "", 0 : 20, -20, 0, 0
+
+Text=1 '0 = Off, 1 = Visual  2 = Engrave
+
+Doortype=1 '0 = Slab, 1 = Shaker with panel, 2 Alexandra with corner handle
+
+outside=1 '0 = Straight profile with 1/8 round over, 1 = Chamfer, 2 = 3/4 Round, 3 = Straight no profile, 4=1/8 Round with step
+
+hingside=1 '0 = Right hinge for wall doors, Left hinge for base doors, left handle drawers, 1 = Left hinge for wall doors, Right hinge base doors, right handle drawers
+
+Outsiderad=3
+
+outsidetooldepth=0.1
+
+'~~~~~~~~~~~~~~~~~~
+'Shaker door options
+'~~~~~~~~~~~~~~~~~~
+Vbitdepth=4.4'2.5 ''Controls inside vbit depth when applicable
+Panelthick=3
+Paneltype=2'0=No panel, 1=Tight Panel, 2=Loose Panel
+paneldep=9.6'Vbitdepth+Panelthick'9.6
+StileW=57.12 'Left and right
+RailW=57.12 'Top and bottom
+LeftStileW=StileW
+RightStileW=StileW
+Railwtop=Railw
+Railwbottom=Railw
+InsideT=0 '0=Straight, 1=Chamfer, 2=1/8 Round, 3=Chamfer with sharp corner, 4=1/8 Round with step
+
+'Number of vertical and horizontal panels
+numvpanels=1 'This option has not been tested with each inside profile run test and adjust before production
+numhpanels=1 'Max 2 This option is in testing DO NOT use thank you.
+
+'Warning options other then 0 produce extra dust and debris but decrease machine time greatly
+panelspeed=2 '0=1/2 down cutting, 1=1.5 plung cutter, 2=1/2 down then 1.5 plung then flycut warning reduce speed(ONLY use option 2 for nested doors)
+
+Panelwidth=(LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))
+PanelLength=(LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels)))
+
+If PanelLength<400 or Panelwidth<200 Then
+panelsteps=2 'how many steps are used for speed 2 option only
+Else
+panelsteps=3 'how many steps are used for speed 2 option only
+End If
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'Interagated metal handle option
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MetalHandle=0 '0 = Off, 1 = Center, 2 = Base Right, Wall Left, 3 = Base Left, Wall Right
+Handledepth= 1.43+0.65
+Handlewidth= 212+4
+location= 32 'distance from edge 32 is standard
+
+'For tall doors location 1/3 location on side ((LPY-(LPY*0.33))-(Handlewidth/2))
+
+If MetalHandle > 0 Then
+'Center
+If MetalHandle = 1 Then
+@ ROUT, "", "", 65148548, "", 0 : "Handle_2", 0, "2", 0, 0, "", 1, 6.3, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_4DOWN", 103, 1, 1, 0, 45, 0, 1, 0, 0, 0, 0, 45, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 65147684, "", 0 : -4, ((LPY/2)-(Handlewidth/2)), 0
+  @ LINC_EP, "", "", 145729660, "", 0 : Handledepth+4, 0, 0, 0.1, 0, 0, 0, 0
+  @ LINC_EP, "", "", 145729260, "", 0 : 0, handlewidth, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 145728860, "", 0 : -handledepth-4, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 145728460, "", 0 :
+End If
+'Base Right, Wall Left
+If MetalHandle = 2 Then
+@ ROUT, "", "", 64875412, "", 0 : "Handle_2_2", 0, "2", 0, 0, "", 1, 6.3, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_4DOWN", 103, 1, 1, 0, 45, 0, 1, 0, 0, 0, 0, 45, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 146311788, "", 0 : -4, location, 0
+  @ LINC_EP, "", "", 64875076, "", 0 : Handledepth+4, 0, 0, 0.1, 0, 0, 0, 0
+  @ LINC_EP, "", "", 146311052, "", 0 : 0, handlewidth, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 64875476, "", 0 : -handledepth-4, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 146310988, "", 0 :
+End If
+'Base Left, Wall Right
+If MetalHandle  =3 Then
+@ ROUT, "", "", 66263924, "", 0 : "Handle_2_2_2", 0, "2", 0, 0, "", 1, 6.3, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_4DOWN", 103, 1, 1, 0, 45, 0, 1, 0, 0, 0, 0, 45, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 145728068, "", 0 : -4, LPY-(Handlewidth+location), 0
+  @ LINC_EP, "", "", 66263588, "", 0 : Handledepth+4, 0, 0, 0.1, 0, 0, 0, 0
+  @ LINC_EP, "", "", 66262788, "", 0 : 0, handlewidth, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 66263988, "", 0 : -handledepth-4, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 145728004, "", 0 :
+End If
+End If
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If hingside=0 Then
+CornerRef="1"
+Else
+CornerRef="2"
+End If
+
+If Paneltype<2 Then
+Insiderad=3
+Else
+Insiderad=6
+End If
+
+' GEOTEXT, "", "", 203638436, "", 0 : "P1322_2", 0, "2", Panelwidth, -100, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Arial", 40, 0, 0, 0, 0, 1, 0, -1, 32, 32, 50, 0, 45, 0, 0, 0, 0, 0, 1, 1, "GEOTEXT"
+' GEOTEXT, "", "", 132260804, "", 0 : "P1322", 0, "2", Panellength, -100, 100, 0, 0, 0, 0, 0, 0, 0, 0, "Arial", 40, 0, 0, 0, 0, 1, 0, -1, 32, 32, 50, 0, 45, 0, 0, 0, 0, 0, 1, 1, "GEOTEXT"
+
+
+If LPX>=100 or LPY>=100 Then
+If LPX+LPY<= 1000 or LPX<=200 or LPY<=200 Then
+Vrepeat=2
+outsidefdepth=1
+Else
+Vrepeat=0
+outsidefdepth=0
+End If
+Else
+Vrepeat=3
+outsidefdepth=1
+End If
+
+
+If outside=0 or outside=4 Then
+' GEO, "", "", 204906380, "", 0 : "Outside1_8Round", 0, "1", 0, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 1, 0, 0, "GEO", 0
+  @ RECTANGLE, "", "", 205381412, "", 0 : 0.1*Outsiderad, 0.1*Outsiderad, LPX-((0.1*Outsiderad)*2), LPY-((0.1*Outsiderad)*2), 1, 2, Outsiderad, 1, HALF, 0, 0, 0, 0, 0, 0, 0, 1
+  @ ENDPATH, "", "", 131614892, "", 0 :
+@ OFFGEO, "", "Offset outside 1_8 round", 131197916, "", 0 : "Offset_outside_1_8_round", "Outside", "", "OFFGEO", -0.3, 0, 0, 0, 0, 1
+End If
+@ GEO, "", "", 65033044, "", 0 : "Outside", 0, "1", 0, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 1, 0, 0, "GEO", 0
+  ' RECTANGLE, "", "", 64850244, "", 0 : 0, 0, LPX, LPY, 1, 2, Outsiderad, 3, HALF, 0, 0, 0, 0, 0, 0, 0, 1
+  @ START_POINT, "", "", 131719932, "", 0 : lpx/2, 0, 0
+  @ LINC_EP, "", "", 129649868, "", 0 : lpx/2, 0, 0, 0, 0, 0, 0, 0
+  @ CONNECTOR, "", "", 65080948, "", 0 : Outsiderad, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 131479612, "", 0 : 0, lpy, 0, 0, 0, 0, 0, 0
+  @ CONNECTOR, "", "", 130995116, "", 0 : Outsiderad, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 130138196, "", 0 : -lpx, 0, 0, 0, 0, 0, 0, 0
+  @ CONNECTOR, "", "", 130302708, "", 0 : Outsiderad, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 131479908, "", 0 : 0, -lpy, 0, 0, 0, 0, 0, 0
+  @ CONNECTOR, "", "", 131160580, "", 0 : Outsiderad, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 130219540, "", 0 : lpx/2, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 65452844, "", 0 :
+
+If InsideT= 1 or InsideT= 3 Then
+@ OFFGEO, "", "Inside vbit offset path", 155944852, "", 0 : "InsideVbit", "Base_panel", "", "OFFGEO", -0.3, 0, 0, 0, 0, 1
+If numHpanels>1 Then
+@ OFFGEO, "", "Inside vbit offset path", 164575956, "", 0 : "InsideVbit_H", "Base_panel_H", "", "OFFGEO", -0.3, 0, 0, 0, 0, 1
+If numHpanels>2 Then
+@ OFFGEO, "", "Inside vbit offset path", 130264716, "", 0 : "InsideVbit_H_2", "Base_panel_H_2", "", "OFFGEO", -0.3, 0, 0, 0, 0, 1
+End If
+End If
+End If
+
+'Tool path for inside edge of panel
+If Paneltype=0 and InsideT=0 Then
+
+Else
+@ GEO, "", "", 138117324, "", 0 : "Base_panel", 0, "1", paneldep, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 1, 0, 0, "GEO", 0
+  @ RECTANGLE, "", "", 138356604, "", 0 : LeftStileW, Railwtop, (LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))), (LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels))), 1, 2, Insiderad, 1, HALF, 0, 0, 0, 0, 0, 0, 0, 1
+  @ ENDPATH, "", "", 64517276, "", 0 :
+If numHpanels>1 Then
+@ GEO, "", "", 132717964, "", 0 : "Base_panel_H", 0, "1", paneldep, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 1, 0, 0, "GEO", 0
+  @ RECTANGLE, "", "", 64932556, "", 0 : LeftStileW, (RailW*2)+((LPy/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))), (LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))), (LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels))), 1, 0, 0, 1, HALF, 0, 0, 0, 0, 0, 0, 0, 1
+  @ ENDPATH, "", "", 64815148, "", 0 :
+If numHpanels>2 Then
+@ GEO, "", "", 130093412, "", 0 : "Base_panel_H_2", 0, "1", paneldep, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 1, 0, 0, "GEO", 0
+  @ RECTANGLE, "", "", 64900572, "", 0 : LeftStileW, ((RailW*3)+((LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))))+((LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))), (LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))), (LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels))), 1, 0, 0, 1, HALF, 0, 0, 0, 0, 0, 0, 0, 1
+  @ ENDPATH, "", "", 66478044, "", 0 :
+End If
+End If
+
+If Paneltype>0 Then
+@ OFFGEO, "", "Nest panel", 132842796, "", 0 : "Nested_panel_V", "Base_panel", "", "OFFGEO", -3.25, 1, 0, 0, 0, 1
+If panelspeed=2 and PanelLength>200 and Panelwidth>200 Then
+@ OFFGEO, "", "100Flycut nested panel", 129657916, "", 0 : "Nested_panel_V_Fly", "Base_panel", "", "OFFGEO", -25, 1, 0, 0, 0, 1
+End If
+End If
+
+If numHpanels>1 Then
+@ OFFGEO, "", "Nest panel", 66206516, "", 0 : "Nested_panel_H", "Base_panel_H", "", "OFFGEO", -3.25, 1, 0, 0, 0, 1
+If panelspeed=2 and PanelLength>200 and Panelwidth>200 Then
+@ OFFGEO, "", "100Flycut nested panel", 130876844, "", 0 : "Nested_panel_H_Fly", "Base_panel_H", "", "OFFGEO", -25, 1, 0, 0, 0, 1
+End If
+If numHpanels>2 Then
+@ OFFGEO, "", "Nest panel", 65100948, "", 0 : "Nested_panel_H_2", "Base_panel_H_2", "", "OFFGEO", -3.25, 1, 0, 0, 0, 1
+If panelspeed=2 and PanelLength>200 and Panelwidth>200 Then
+@ OFFGEO, "", "100Flycut nested panel", 130362716, "", 0 : "Nested_panel_H_Fly_2", "Base_panel_H_2", "", "OFFGEO", -25, 1, 0, 0, 0, 1
+End If
+End If
+If panelspeed=2 Then
+End If
+End If
+End If
+
+'Tight door tool paths
+If Paneltype=1 Then
+@ ROUTG, "", "", 133373364, "", 0 : "Base_panel", "P1355", 0, 0, paneldep, "", 1, 6.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_4DOWN", 103, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 65384196, "", 0 :
+@ ROUTG, "", "", 215659628, "", 0 : "Base_panel", "P1355_2_2", 0, 0, paneldep, "", 1, 12.62, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "DOWN12", 102, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 65780412, "", 0 :
+If numHpanels>1 Then
+@ ROUTG, "", "", 66121636, "", 0 : "Base_panel_H", "P1355_3", 0, 0, paneldep, "", 1, 6.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_4DOWN", 103, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 65647292, "", 0 :
+@ ROUTG, "", "", 65644924, "", 0 : "Base_panel_H", "P1355_3_2_2", 0, 0, paneldep, "", 1, 6.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "DOWN12", 102, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 180119436, "", 0 :
+If numHpanels>2 Then
+@ ROUTG, "", "", 64745436, "", 0 : "Base_panel_H_2", "P1355_3_3", 0, 0, paneldep, "", 1, 6.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_4DOWN", 103, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 130477540, "", 0 :
+@ ROUTG, "", "", 131179132, "", 0 : "Base_panel_H_2", "P1355_3_2_2_2", 0, 0, paneldep, "", 1, 6.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "DOWN12", 102, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 129912444, "", 0 :
+End If
+End If
+End If
+
+'Loose door tool paths
+If Paneltype=2 Then
+@ ROUTG, "", "", 131975340, "", 0 : "Base_panel", "P1355_2", 0, 0, paneldep, "", 1, 12.62, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "DOWN12", 102, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 132598780, "", 0 :
+If numHpanels>1 Then
+@ ROUTG, "", "", 155941852, "", 0 : "Base_panel_H", "P1355_3_2", 0, 0, paneldep, "", 1, 6.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "DOWN12", 102, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 132353620, "", 0 :
+If numHpanels>2 Then
+@ ROUTG, "", "", 130113172, "", 0 : "Base_panel_H_2", "P1355_3_2_3", 0, 0, paneldep, "", 1, 6.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "DOWN12", 102, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 131411300, "", 0 :
+End If
+End If
+End If
+
+'~~~~~~~~panel nesting~~~~~~~~~
+
+If Paneltype>0 Then
+
+If panelspeed=0 or PanelLength<80 or Panelwidth<80 Then
+@ POCK, "", "", 132048588, "", 0 : "Nested_panel_V", "", 12.4, PANELDEP, "", 1, 1, 2, -1, 0, 1, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_5_2", 0, 0, 0, 0, "DOWN12", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+If numHpanels>1 Then
+@ POCK, "", "", 65785348, "", 0 : "Nested_panel_H", "", 12.4, PANELDEP, "", 1, 1, 2, -1, 0, 1, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_5_2_2", 0, 0, 0, 0, "DOWN12", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+If numHpanels>2 Then
+@ POCK, "", "", 129883604, "", 0 : "Nested_panel_H_2", "", 12.4, PANELDEP, "", 1, 1, 2, -1, 0, 1, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_5_2_2_2", 0, 0, 0, 0, "DOWN12", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+End If
+End If
+Else
+
+If panelspeed=1 or PanelLength<120 or Panelwidth<130Then
+If numHpanels>2 or numvpanels >2 Then
+@ ROUTG, "", "", 363085484, "", 0 : "Nested_panel_V", "P1492_2", 0, 0, paneldep, "", 1, 38.28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1.5PLUNG", 102, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 367228460, "", 0 :
+@ POCK, "", "", 133659060, "", 0 : "Nested_panel_V", "", 38.13, PANELDEP, "", 1, 1, 2, -1, 0, 0, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_5_2", 0, 0, 0, 0, "1.5PLUNG", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+If numHpanels>1 Then
+@ POCK, "", "", 131875740, "", 0 : "Nested_panel_H", "", 38.13, PANELDEP, "", 1, 1, 2, -1, 0, 1, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_5_2_2", 0, 0, 0, 0, "1.5PLUNG", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+If numHpanels>2 Then
+@ POCK, "", "", 66505772, "", 0 : "Nested_panel_H_2", "", 38.13, PANELDEP, "", 1, 1, 2, -1, 0, 1, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_5_2_2_3", 0, 0, 0, 0, "1.5PLUNG", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+End If
+End If
+Else
+
+POKETINS=20'10'3.25 'Offset from edge of panel
+POKETDIA=38 'tool Diameter
+ROUTRAD=POKETDIA/2 'tool radius
+POKETOFF=POKETDIA 'Offset between lines
+QTYPASS=(LPY-(LeftStileW+Rightstilew))/POKETOFF 'Number of passes
+
+@ ROUT, "", "", 196509396, "", 0 : "Plung_main", 0, "1", 0, PANELDEP, "", 1, 38.28, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1.5PLUNG", 102, 1, 0, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 184076492, "", 0 : LeftStileW+POKETINS+ROUTRAD, Railwtop+POKETINS+ROUTRAD, 0
+  @ LINE_EP, "", "", 195736516, "", 0 : LPX-rightstileW-POKETINS-ROUTRAD, Railwtop+POKETINS+ROUTRAD, 0, 0, 0, 0, 0, 0, 0
+
+ i=1
+Limit=QTYPASS-1
+Xend=1
+
+While i<Limit
+  @ LINC_EP, "", "", 171425964, "", 0 : 0, POKETOFF-20, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 172755020, "", 0 : -(LPX-2*railw-2*POKETINS-2*ROUTRAD), 0, 0, 0, 0, 0, 0, 0
+  i=i+1
+  Xend=0
+      If i<Limit Then
+         @ LINC_EP, "", "", 192276180, "", 0 : 0, POKETOFF-20, 0, 0, 0, 0, 0, 0
+         @ LINC_EP, "", "", 68263428, "", 0 : (LPX-2*railw-2*POKETINS-2*ROUTRAD), 0, 0, 0, 0, 0, 0, 0
+         i=i+1
+         Xend=1
+      End If
+ Wend
+
+If Xend=0 Then
+  @ LINE_EP, "", "", 173358020, "", 0 : railw+POKETINS+ROUTRAD, LPY-STILEW-POKETINS-ROUTRAD, 0, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 188973404, "", 0 : LPX-2*railw-2*POKETINS-2*ROUTRAD, 0, 0, 0, 0, 0, 0, 0
+Else
+  @ LINE_EP, "", "", 68577116, "", 0 : LPX-RAILW-ROUTRAD-POKETINS, LPY-stilew-POKETINS-ROUTRAD, 0, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 184346716, "", 0 : -(LPX-2*railw-2*POKETINS-2*ROUTRAD), 0, 0, 0, 0, 0, 0, 0
+End If
+
+  @ ENDPATH, "", "", 193549012, "", 0 :
+
+@ POCK, "", "", 185954876, "", 0 : "Nested_panel_V", "", 38.13, PANELDEP, "", 1, 4, 14, -1, 0, 0, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_5_2_3_2_2", 0, 0, 0, 0, "1.5PLUNG", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+
+
+End If
+Else
+
+If panelspeed=2 Then
+
+If numHpanels>2 or numvpanels >2 Then
+@ POCK, "", "", 172495772, "", 0 : "Nested_panel_V", "", 38.13, PANELDEP, "", 1, 4, 14, -1, 0, 0, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_5_2_3", 0, 0, 0, 0, "1.5PLUNG", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+@ POCK, "", "", 190734308, "", 0 : "Nested_panel_V_Fly", "", 100.2, paneldep, "", 1, 2, 40, -1, 0, 0, 0, paneldep/panelsteps, 0, 0, 0, 0, 0, 0, 0, -1, "P1477", 0, 0, 0, 0, "100FLY", 102, 1, 0, 45, 0, 0, 45, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+' ROUTG, "", "", 196277820, "", 0 : "Nested_panel_V_Fly", "P1492", 0, 0, paneldep, "", 1, 100.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 2, paneldep/2, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "100FLY", 102, 1, 2, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 189128236, "", 0 :
+Else
+If Panelwidth>200 Then
+POKETINS=30'Offset from edge of panel
+Else
+POKETINS=12'Offset from edge of panel
+End If
+If Panelwidth>200 Then
+POKETDIA=100-20'100fly tool Diameter
+Else
+POKETDIA=100 '100fly tool Diameter
+End If
+ROUTRAD=POKETDIA/2 '100fly tool radius
+POKETOFF=POKETDIA 'Offset between lines
+'QTYPASS=(LPY-(LeftStileW+Rightstilew))/POKETOFF 'Number of passes 'origal
+
+QTYPASS=(LPY-((LeftStileW+Rightstilew)+(POKETINS*2))) 'Number of passes 'test
+
+'Here
+@ ROUT, "", "", 67497348, "", 0 : "100fly_main", 0, "1", 0, PANELDEP, "", 1, 100.2, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, panelsteps, paneldep/panelsteps, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "100FLY", 102, 1, 0, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 171692956, "", 0 : LeftStileW+POKETINS+ROUTRAD, Railwtop+POKETINS+ROUTRAD, 0
+  @ LINE_EP, "", "", 186339548, "", 0 : LPX-rightstileW-POKETINS-ROUTRAD, Railwtop+POKETINS+ROUTRAD, 0, 0, 0, 0, 0, 0, 0
+
+i=QTYPASS-POKETOFF
+Limit=POKETOFF
+Xend=1
+
+
+While i>Limit
+  @ LINC_EP, "", "", 187040876, "", 0 : 0, POKETOFF, 0, 0, 0, 0, 0, 0
+  @ LINC_EP, "", "", 173319228, "", 0 : -(LPX-2*railw-2*POKETINS-2*ROUTRAD), 0, 0, 0, 0, 0, 0, 0
+  i=i-POKETOFF
+  Xend=0
+      If i>Limit Then
+         @ LINC_EP, "", "", 171401244, "", 0 : 0, POKETOFF, 0, 0, 0, 0, 0, 0
+         @ LINC_EP, "", "", 188226684, "", 0 : (LPX-2*railw-2*POKETINS-2*ROUTRAD), 0, 0, 0, 0, 0, 0, 0
+         i=i-POKETOFF''i+1
+         Xend=1
+      End If
+ Wend
+
+If xend=0 Then
+@ LINC_EP, "", "", 131358188, "", 0 : 0, i, 0, 0, 0, 0, 0, 0
+@ LINC_EP, "", "", 132336964, "", 0 : (LPX-2*railw-2*POKETINS-2*ROUTRAD), 0, 0, 0, 0, 0, 0, 0
+Else
+If i>(POKETOFF/6) Then
+@ LINC_EP, "", "", 65867576, "", 0 : 0, i, 0, 0, 0, 0, 0, 0
+@ LINC_EP, "", "", 131651724, "", 0 : -(LPX-2*railw-2*POKETINS-2*ROUTRAD), 0, 0, 0, 0, 0, 0, 0
+End If
+End If
+
+  @ ENDPATH, "", "", 67196220, "", 0 :
+
+@ POCK, "", "", 188056052, "", 0 : "Nested_panel_V", "", 38.13, PANELDEP, "", 1, 4, 14, -1, 0, 0, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_5_2_3_2", 0, 0, 0, 0, "1.5PLUNG", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+
+End If
+
+If numHpanels>1 Then
+@ POCK, "", "", 65287652, "", 0 : "Nested_panel_H", "", 38.13, PANELDEP, "", 1, 4, 14, -1, 0, 0, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_5_2_2_2", 0, 0, 0, 0, "1.5PLUNG", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+@ POCK, "", "", 132903468, "", 0 : "Nested_panel_H_Fly", "", 100, PANELDEP, "", 1, 2, 40, -1, 0, 0, 0, PANELDEP/panelsteps, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_3_2_2_2", 0, 0, 0, 0, "100FLY", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+If numHpanels>2 Then
+@ POCK, "", "", 130432412, "", 0 : "Nested_panel_H_2", "", 38.13, PANELDEP, "", 1, 4, 14, -1, 0, 0, 0, PANELDEP, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_5_2_2_2_2", 0, 0, 0, 0, "1.5PLUNG", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+@ POCK, "", "", 130239372, "", 0 : "Nested_panel_H_Fly_2", "", 100, PANELDEP, "", 1, 2, 40, -1, 0, 0, 0, PANELDEP/panelsteps, 0, 0, 0, 0, 0, 0, 0, -1, "P1063_4_3_3_2_2_2_2", 0, 0, 0, 0, "100FLY", 102, 1, 0, 75, 0, 0, 75, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+End If
+End If
+End If
+End If
+End If
+End If
+
+'~~~~~~~Inside profile~~~~~~~~~~
+'0=Straight, 1=Chamfer, 2=1/8 Round, 3=, 4=1/8 Round with step
+If InsideT>0 Then
+
+If InsideT=1 or InsideT = 3 Then 'Panel_Vbit
+@ ROUTG, "", "", 133617820, "", 0 : "InsideVbit", "P1453", 0, 0, Vbitdepth, "", 1, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 64696804, "", 0 :
+If numHpanels>1 Then
+@ ROUTG, "", "", 132845548, "", 0 : "InsideVbit_H", "P1453_2", 0, 0, Vbitdepth, "", 1, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 157283388, "", 0 :
+If numHpanels>2 Then
+@ ROUTG, "", "", 66218700, "", 0 : "InsideVbit_H_2", "P1453_2_3", 0, 0, Vbitdepth, "", 1, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 130124404, "", 0 :
+End If
+End If
+End If
+
+If InsideT=2 or InsideT=4 Then 'needs testing
+@ OFFGEO, "", "1/8 Round inside panel offset", 133104772, "", 0 : "1_8Round_insidepanel_V", "Base_panel", "", "OFFGEO", 0.2, 0, 0, 0, 0, 1
+If numHpanels>1 Then
+@ OFFGEO, "", "1/8 Round inside panel offset", 131932284, "", 0 : "1_8Round_insidepanel_H", "Base_panel_H", "", "OFFGEO", 0.2, 0, 0, 0, 0, 1
+If numHpanels>2 Then
+@ OFFGEO, "", "1/8 Round inside panel offset", 129952420, "", 0 : "1_8Round_insidepanel_H_2", "Base_panel_H_2", "", "OFFGEO", 0.2, 0, 0, 0, 0, 1
+End If
+End If
+End If
+
+If InsideT=2 Then
+@ ROUTG, "", "", 66305588, "", 0 : "1_8Round_insidepanel_V", "P1467", 0, 0, 3, "", 1, 4.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 2, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 132440220, "", 0 :
+If numHpanels>1 Then
+@ ROUTG, "", "", 65066428, "", 0 : "1_8Round_insidepanel_H", "P1467_2", 0, 0, 3, "", 1, 4.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 2, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 132816860, "", 0 :
+If numHpanels>2 Then
+@ ROUTG, "", "", 65334484, "", 0 : "1_8Round_insidepanel_H_2", "P1467_2_3", 0, 0, 3, "", 1, 4.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 2, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 131210292, "", 0 :
+End If
+End If
+End If
+
+If InsideT=3 Then'Chamfer with sharp corner
+
+' ROUTG, "", "", 139015604, "", 0 : "Base_panel", "P1453_3", 0, 0, Vbitdepth, "", 1, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 139278628, "", 0 :
+If numHpanels>1 Then
+@ ROUTG, "", "", 139849020, "", 0 : "Base_panel_H", "P1453_2_2", 0, 0, Vbitdepth, "", 1, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 139848092, "", 0 :
+If numHpanels>2 Then
+@ ROUTG, "", "", 65402916, "", 0 : "Base_panel_H_2", "P1453_2_2_2", 0, 0, Vbitdepth, "", 1, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 45, 0, 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 131236700, "", 0 :
+End If
+End If
+
+' ROUT, "", "", 239691492, "", 0 : "SqCrnr", 0, "2,1,3,4", 0, 0, "", 0, 80, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 179783332, "", 0 : LeftStileW-Vbitdepth, Railwtop-Vbitdepth, 0
+  @ LINC_EP, "", "", 236036412, "", 0 : Vbitdepth, Vbitdepth, 0, Vbitdepth, 0, 0, 0, 0
+  @ ENDPATH, "", "", 65167748, "", 0 :
+' ROUT, "", "", 233375620, "", 0 : "SqCrnr_Bottom_left_V", 0, "2", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 180899604, "", 0 : LeftStileW-Vbitdepth, Railwtop-Vbitdepth+((LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))+Railwtop), 0
+  @ LINC_EP, "", "", 239888236, "", 0 : Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 177367196, "", 0 :
+@ ROUT, "", "", 180846628, "", 0 : "SqCrnr_Top_left_V", 0, "1,2", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 66407604, "", 0 : LeftStileW-Vbitdepth+0.3, Railwtop-Vbitdepth+0.3, 0
+  @ LINC_EP, "", "", 233314276, "", 0 : Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 237416556, "", 0 :
+@ ROUT, "", "", 239806940, "", 0 : "SqCrnr_Top_Right_V", 0, "1,2", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 239080644, "", 0 : LeftStileW+Vbitdepth+(LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels)))-0.3, Railwtop-Vbitdepth+0.3, 0
+  @ LINC_EP, "", "", 237482780, "", 0 : -Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 179797884, "", 0 :
+' ROUT, "", "", 238692300, "", 0 : "SqCrnr_Bottom_Right", 0, "2", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 65530460, "", 0 : LeftStileW+Vbitdepth+(LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))), Railwtop-Vbitdepth+((LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))+Railwtop), 0
+  @ LINC_EP, "", "", 180889692, "", 0 : -Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 236853060, "", 0 :
+
+If numHpanels>1 Then
+@ ROUT, "", "", 66447700, "", 0 : "SqCrnr_Bottom_Right_2", 0, "2", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 146357940, "", 0 : LeftStileW+Vbitdepth+(LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))), Railwtop-Vbitdepth+((LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))+Railwtop), 0
+  @ LINC_EP, "", "", 145573492, "", 0 : -Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 146170324, "", 0 :
+@ ROUT, "", "", 65798292, "", 0 : "SqCrnr_Bottom_left_V_2", 0, "2", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 146212860, "", 0 : LeftStileW-Vbitdepth, Railwtop-Vbitdepth+((LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))+Railwtop), 0
+  @ LINC_EP, "", "", 146618116, "", 0 : Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 145757772, "", 0 :
+@ ROUT, "", "", 236335652, "", 0 : "SqCrnr_Bottom_left_H", 0, "1", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 238825076, "", 0 : LeftStileW-Vbitdepth, Railwtop-Vbitdepth+((LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))+Railwtop), 0
+  @ LINC_EP, "", "", 233969844, "", 0 : Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 239202084, "", 0 :
+@ ROUT, "", "", 237034036, "", 0 : "SqCrnr_Top_left_H", 0, "2", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 179490172, "", 0 : LeftStileW-Vbitdepth, Railwtop-Vbitdepth, 0
+  @ LINC_EP, "", "", 180449260, "", 0 : Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 178314012, "", 0 :
+@ ROUT, "", "", 233893844, "", 0 : "SqCrnr_Top_Right_H", 0, "2", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 236272964, "", 0 : LeftStileW+Vbitdepth+(LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))), Railwtop-Vbitdepth, 0
+  @ LINC_EP, "", "", 233969908, "", 0 : -Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 180287884, "", 0 :
+@ ROUT, "", "", 236826812, "", 0 : "SqCrnr_Bottom_Right_H", 0, "1", 0, 0, "", 0, 80, 0, 0, 0, ((LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))+2))+Stilew+2, 0, 0, 0, 0, 0, numvpanels, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "VBIT2", 103, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 177090324, "", 0 : LeftStileW+Vbitdepth+(LPX/numvpanels)-((STILEW*((numvpanels+1)/numvpanels))), Railwtop-Vbitdepth+((LPY/numHpanels)-((RailW*((numHpanels+1)/numHpanels)))+Railwtop), 0
+  @ LINC_EP, "", "", 237240564, "", 0 : -Vbitdepth*2, Vbitdepth*2, 0, Vbitdepth*2, 0, 0, 0, 0
+  @ ENDPATH, "", "", 180597148, "", 0 :
+End If
+End If
+
+If InsideT=4 Then
+@ ROUTG, "", "", 65226236, "", 0 : "1_8Round_insidepanel_V", "P1467_3", 0, 0, 5, "", 1, 4.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 2, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 155492100, "", 0 :
+If numHpanels>1 Then
+@ ROUTG, "", "", 132880476, "", 0 : "1_8Round_insidepanel_H", "P1467_2_2", 0, 0, 5, "", 1, 4.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 2, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 132397404, "", 0 :
+If numHpanels>2 Then
+@ ROUTG, "", "", 64955636, "", 0 : "1_8Round_insidepanel_H_2", "P1467_2_2_2", 0, 0, 5, "", 1, 4.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 2, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 131241292, "", 0 :
+End If
+End If
+End If
+End If
+
+
+'~~~~~~~~~out side profile~~~~~~~~~~~
+
+If outside = 0 Then
+@ ROUTG, "", "", 66183124, "", 0 : "Outside", "P1197", 0, 0, outsidetooldepth, "", 1, 12.7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, Vrepeat, outsidefdepth, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "UP12", 102, 1, 1, 5, 45, 0, 1, 0, 0, 0, 5, 45, 0, 1, 0, 0, 0, 0, 10, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 66002788, "", 0 :
+@ ROUTG, "", "", 204528748, "", 0 : "Offset_outside_1_8_round", "P1452", 0, 0, 3, "", 1, 4.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 1, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 198268516, "", 0 :
+' ROUT, "", "Remove after testing if geo matchs", 181846956, "", 0 : "P1039", 0, "1", 0, 3, "", 1, 4.1, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 1, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ RECTANGLE, "", "", 181296684, "", 0 : 0.1*Outsiderad, 0.1*Outsiderad, LPX-((0.1*Outsiderad)*2), LPY-((0.1*Outsiderad)*2), 1, 2, Outsiderad, 1, HALF, 0, 0, 0, 0, 0, 0, 0, 1
+  @ ENDPATH, "", "", 173008028, "", 0 :
+End If
+
+If outside = 1 Then
+@ ROUTG, "", "", 136931476, "", 0 : "Outside", "P1354", 0, 0, outsidetooldepth, "", 1, 16.68, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, Vrepeat, outsidefdepth, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "CHAMFER", 102, 1, 1, 5, 45, 0, 0, 0, 0, 0, 5, 45, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 140032492, "", 0 :
+End If
+
+If outside = 2 Then
+@ ROUTG, "", "", 137461908, "", 0 : "Outside", "P1356", 0, 0, outsidetooldepth, "", 1, 15.75, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, Vrepeat, outsidefdepth, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "3_4ROUND", 100, 1, 1, 5, 45, 0, 0, 0, 0, 0, 5, 45, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 65332388, "", 0 :
+End If
+
+If outside = 3 Then
+@ ROUTG, "", "", 198743812, "", 0 : "Outside", "P1197_3", 0, 0, 0.2, "", 1, 12.7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, Vrepeat, outsidefdepth, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "UP12", 102, 1, 1, 5, 45, 0, 1, 0, 0, 0, 5, 45, 0, 1, 0, 0, 0, 0, 10, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 200603036, "", 0 :
+End If
+
+If outside = 4 Then
+@ ROUTG, "", "", 66234260, "", 0 : "Outside", "P1197_2", 0, 0, 0.1, "", 1, 12.7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, Vrepeat, outsidefdepth, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "UP12", 102, 1, 1, 5, 45, 0, 1, 0, 0, 0, 5, 45, 0, 1, 0, 0, 0, 0, 10, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 66221060, "", 0 :
+@ ROUTG, "", "", 65481756, "", 0 : "Outside1_8Round", "P1373", 0, 0, 5, "", 1, 4.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 1, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUTG", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 140003740, "", 0 :
+' ROUT, "", "", 65665796, "", 0 : "P1039_2", 0, "1", 0, 5, "", 1, 4.1, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, "1_8RO", 102, 1, 1, 1, 45, 0, 0, 0, 0, 0, 1, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ RECTANGLE, "", "", 65665860, "", 0 : 0.1*Outsiderad, 0.1*Outsiderad, LPX-((0.1*Outsiderad)*2), LPY-((0.1*Outsiderad)*2), 1, 2, Outsiderad, 1, HALF, 0, 0, 0, 0, 0, 0, 0, 1
+  @ ENDPATH, "", "", 66278036, "", 0 :
+End If
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'Alexandra template program
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If Doortype=2 Then
+@ GEO, "", "", 173883156, "", 0 : "Handle", 0, CornerRef, 0, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 1, 0, 0, "GEO", 0
+  @ START_POINT, "", "", 179768204, "", 0 : -5, -5, 0
+  @ LINE_EP, "", "", 173582500, "", 0 : 37, -5, 0, 0, 0, 0, 0, 0, 0
+  @ LINE_LNAN, "", "", 182052044, "", 0 : -60, -45, 0, 0, 0, 0, 0, 0
+  @ LINE_EP, "", "", 179232460, "", 0 : -5, -5, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 181696436, "", 0 :
+
+@ POCK, "", "", 172956668, "", 0 : "Handle", "", 12.32, 14, "", 1, 2, 4, -1, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, -1, "P1129", 0, 0, 0, 0, "DOWN12", 102, 1, 0, 45, 0, 0, 45, 0, 0, 0, 0, 0, "", 0, 0, "", "", "POCK", 0, 0, 0, 0, 0
+
+If hingside = 0 Then
+@ ROUT, "", "", 190861924, "", 0 : "P1001_2_3_3", 0, "3", 0, 14, "", 1, 18.9, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, ".5RADIUS", 102, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 66106396, "", 0 : lpx, lpy, 0
+  @ LINE_EP, "", "", 191179540, "", 0 : LPX-42, LPY+5, 0, 0, 0, 0, 0, 0, 0
+  @ LINE_LNAN, "", "", 16052620, "", 0 : 66.5, -45, 0, 0, 0, 0, 0, 0
+  @ LINE_EP, "", "", 66240428, "", 0 : lpx, lpy, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 191131748, "", 0 :
+Else
+@ ROUT, "", "", 190316260, "", 0 : "P1001_2_3_4", 0, "4", 0, 14, "", 1, 18.9, -1, 0, 0, 32, 32, 50, 0, 45, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, ".5RADIUS", 102, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, 1, 0, 0, 0, 0, "", 5, 0, 20, 80, 60, 0, "", "", "ROUT", 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  @ START_POINT, "", "", 66294444, "", 0 : lpx, lpy, 0
+  @ LINE_EP, "", "", 65105844, "", 0 : LPX-42, LPY+5, 0, 0, 0, 0, 0, 0, 0
+  @ LINE_LNAN, "", "", 190160804, "", 0 : 66.5, -45, 0, 0, 0, 0, 0, 0
+  @ LINE_EP, "", "", 65612364, "", 0 : lpx, lpy, 0, 0, 0, 0, 0, 0, 0
+  @ ENDPATH, "", "", 66450772, "", 0 :
+End If
+
+End If
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+'~~~~~~~~~~~~~~~~~~Text~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If text > 0 Then
+If text = 1 Then
+@ GEOTEXT, "", "", 222599468, "", 0 : "Size_2_2", 0, "2", "X", lpx/2, lpy/2, 0, 0, 0, 0, 0, 0, 0, 0, "Frutiger-Cn", 30, 0, 0, 0, 0, 1, 0, -1, 32, 32, 50, 0, 45, 0, 0, 0, 0, 0, 1, 1, "GEOTEXT"
+@ GEOTEXT, "", "", 65755412, "", 0 : "Size_3_2", 0, "2", Lpy, lpx/2-60, lpy/2, 0, 0, 0, 0, 0, 0, 0, 0, "Frutiger-LightCn", 30, 0, 0, 0, 0, 1, 0, -1, 32, 32, 50, 0, 45, 0, 0, 0, 0, 0, 1, 1, "GEOTEXT"
+@ GEOTEXT, "", "", 229401164, "", 0 : "Size_4", 0, "2", Lpx, lpx/2+60, lpy/2, 0, 0, 0, 0, 0, 0, 0, 0, "Frutiger-LightCn", 30, 0, 0, 0, 0, 1, 0, -1, 32, 32, 50, 0, 45, 0, 0, 0, 0, 0, 1, 1, "GEOTEXT"
+End If
+If text = 2 and Paneltype > 0 and Panelwidth > 100 and Panellength > 100 Then
+@ GEOTEXT, "", "", 225611348, "", 0 : "Size_2", 0, "2", "X", lpx/2, lpy/2, 0, 0, 0, 0, 0, 0, 0, 0, "MecSoft_Font-1", 30, 0, 0, 0, 0, 1, 0, -1, 32, 32, 50, 0, 45, 0, 0, 0, 0, 0, 1, 1, "GEOTEXT"
+@ GEOTEXT, "", "", 65628276, "", 0 : "Size_3", 0, "2", Lpy, lpx/2-60, lpy/2, 0, 0, 0, 0, 0, 0, 0, 0, "MecSoft_Font-1", 30, 0, 0, 0, 0, 1, 0, -1, 32, 32, 50, 0, 45, 0, 0, 0, 0, 0, 1, 1, "GEOTEXT"
+@ GEOTEXT, "", "", 65627828, "", 0 : "Size", 0, "2", Lpx, lpx/2+60, lpy/2, 0, 0, 0, 0, 0, 0, 0, 0, "MecSoft_Font-1", 30, 0, 0, 0, 0, 1, 0, -1, 32, 32, 50, 0, 45, 0, 0, 0, 0, 0, 1, 1, "GEOTEXT"
+End If
+End If
+
+
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+'To do
+'Make sure that the correct is shared for the xy, and lengths in the geos
+'V1.4 Change logic for nesting to use the size of each panel Complete
+'Smart 100flycut tool path setup and test up to 800 x 800 use pockets for H panels
+'1.52 small fixes for the panel nesting
+'Vbit offset as been added not finished add H panel rules finished
+'Change Geo outside to lines instead of square, make 1_8 round out path Geo offset complete
+'Clean up logic so Geo paths are hinden when using slab option complete
+'V1.6 Complete overhaul of Alexandra complete
+'V1.61 Fix chamfer inside with sharp corners option complete
+'Door_templatev1.61
+'V1.62 adding text option into main branch program complete, Fix tool path for inside option 3
+'V1.63 Logic fix for nesting option 2
+'V1.64 0.3 offset added to vbit for sharp corners and inside profile to remove chader Note need to adjust the H on the sharp corners still
+'V1.7 Metal interated handle added
+'V1.7(1-5) fixing small logic issues with nested panel
+'V1.8 Complete overhaul of flycut nested panel will greatly increase speed
+'V1.81 Testing version do not use
+'V1.82 Completed overhaul of flycut nesting, add new machining to V and H panels in V1.83
+'V1.83 Third vertical panel added all InsideT add exsept option 3 sharp corner needs testing.
+'v1.85.2 Shaking panels testing complete
+
+
+[VBSCRIPT]
+
+[MACRODATA]
+
+[TDCODES]
+
+[PCF]
+
+[TOOLING]
+
+[SUBPROGS]
+
