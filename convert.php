@@ -11,6 +11,7 @@ const DIRECTION_COLUMN = 13;
 function getXYDirection($pts_file) {
     $ret = [];
     $row = 1;
+    echo "-------- File Reading ($pts_file)--------- " . "<br/>";
     if (($handle = fopen($pts_file, "r")) !== FALSE) {
         while (($one_row = fgetcsv($handle, 1000, ",")) !== FALSE) {
             $num = count($one_row);
@@ -32,6 +33,7 @@ function getXYDirection($pts_file) {
             }
         }
         fclose($handle);
+        echo "-------- Get Info from ($pts_file)---------" . "<br/>";
     }
     return $ret;
 }
