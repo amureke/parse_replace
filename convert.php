@@ -5,7 +5,6 @@ const SEARCH_KEY_COLUMN = 3;
 const QTY_COLUMN = 1;
 const LPX_COLUMN = 8;
 const LPY_COLUMN = 7;
-const LPZ = 19;
 const DIRECTION_COLUMN = 13;
 const OUTPUT_DIR = "output";
 const INPUT_DIR = "input";
@@ -40,9 +39,7 @@ function getXYDirection($pts_file) {
     return $ret;
 }
 
-function replaceXY($bpp_file, $data) {
-    $search_words = ["LPX", "LPY", "LPZ"];
-    
+function replaceXY($bpp_file, $data) {    
     $path_parts = pathinfo($bpp_file);
     $filename = $path_parts['filename'];
     echo "-------- File Reading ($bpp_file) --------- " . "<br/>";
@@ -66,7 +63,6 @@ function replaceXY($bpp_file, $data) {
         
         $qty = $one_data["qty"];
         $slug = $one_data["slug"];
-        $replace_words = [$x, $y, LPZ];
 
         $new_file = OUTPUT_DIR . DIRECTORY_SEPARATOR . sprintf("%s_%d_%d_%d_%s.bpp", $filename, $x, $y, $qty, $slug);
         if(!file_exists(dirname($new_file)))
