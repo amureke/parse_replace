@@ -6,6 +6,7 @@ const QTY_COLUMN = 1;
 const LPX_COLUMN = 8;
 const LPY_COLUMN = 7;
 const DIRECTION_COLUMN = 13;
+const FORMAT_COLUMN = 14;
 const OUTPUT_DIR = "output";
 const INPUT_DIR = "input";
 
@@ -23,12 +24,14 @@ function getXYDirection($pts_file) {
                     $lpy = $one_row[LPY_COLUMN - 1];
                     $direction = $one_row[DIRECTION_COLUMN - 1];
                     $direction_slug = slugify($one_row[DIRECTION_COLUMN - 1]);
+                    $format_slug = slugify($one_row[FORMAT_COLUMN - 1]);
                     $ret[] = [
                         "qty" => trim($qty), 
                         "lpx" => trim($lpx), 
                         "lpy" => trim($lpy), 
                         "direction" => trim($direction), 
-                        "slug" => trim($direction_slug)
+                        "slug" => trim($direction_slug), 
+                        "format" => trim($format_slug),
                     ];
                 }
             }
@@ -39,9 +42,12 @@ function getXYDirection($pts_file) {
     return $ret;
 }
 
-function replaceXY($bpp_file, $data) {    
-    $path_parts = pathinfo($bpp_file);
-    $filename = $path_parts['filename'];
+function replaceXY($pts_file, $bpp_file, $data) {    
+    $bpp_path_parts = pathinfo($bpp_file);
+    $bpp_filename = $bpp_path_parts['filename'];
+    
+    $pts_path_parts = pathinfo($pts_file);
+    $pts_filename = $pts_path_parts['filename'];
     echo "-------- File Reading ($bpp_file) --------- " . "<br/>";
     if (($handle = fopen($bpp_file, "r")) === FALSE) {
         echo "Cannot open file ($bpp_file)\n";
@@ -63,8 +69,10 @@ function replaceXY($bpp_file, $data) {
         
         $qty = $one_data["qty"];
         $slug = $one_data["slug"];
+        $format = $one_data["format"];
 
-        $new_file = OUTPUT_DIR . DIRECTORY_SEPARATOR . sprintf("%s_%d_%d_%d_%s.bpp", $filename, $x, $y, $qty, $slug);
+        $new_file_dir = sprintf("%s_%s_%s_%s", OUTPUT_DIR, $pts_filename, $bpp_filename, date("Y-m-d-H-i-s"));
+        $new_file = $new_file_dir . DIRECTORY_SEPARATOR . sprintf("%s_%d_%d_%d_%s_%s.bpp", $bpp_filename, $x, $y, $qty, $slug, $format);
         if(!file_exists(dirname($new_file)))
             mkdir(dirname($new_file), 0777, true);
         $write_handle = fopen($new_file, "w");
@@ -73,7 +81,7 @@ function replaceXY($bpp_file, $data) {
             $replace_y_row = preg_replace($pattern_y, $replace_y, $replace_x_row);
             // Write replace string to our opened file.
             if (fwrite($write_handle, $replace_y_row) === FALSE) {
-                echo "Cannot write to file ($filename)\n";
+                echo "Cannot write to file ($new_file)\n";
             }
         }
         fclose($write_handle);    
@@ -103,7 +111,7 @@ function start() {
     foreach($pts_files as $pts_file) {
         $data = getXYDirection($pts_file);
         foreach($bpp_files as $bpp_file)
-            replaceXY($bpp_file, $data);
+            replaceXY($pts_file, $bpp_file, $data, );
     }
 }
 
