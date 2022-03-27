@@ -71,8 +71,15 @@ function replaceXY($pts_file, $bpp_file, $data) {
         $slug = $one_data["slug"];
         $format = $one_data["format"];
 
+        $keyword = "none";
+        if ($y >= 1 && $y <= 200) {
+            $keyword = 0;
+        } elseif ($y > 200 && $y <= 1800) {
+            $keyword = 1;
+        }
+
         $new_file_dir = sprintf("%s_%s_%s_%s", OUTPUT_DIR, $pts_filename, $bpp_filename, date("Y-m-d-H-i-s"));
-        $new_file = $new_file_dir . DIRECTORY_SEPARATOR . sprintf("%s_%d_%d_%d_%s_%s.bpp", $bpp_filename, $x, $y, $qty, $slug, $format);
+        $new_file = $new_file_dir . DIRECTORY_SEPARATOR . sprintf("%s_%d_%d_%d_%s_%s_%s.bpp", $bpp_filename, $x, $y, $qty, "keyword_" . $keyword, $slug, $format);
         if(!file_exists(dirname($new_file)))
             mkdir(dirname($new_file), 0777, true);
         $write_handle = fopen($new_file, "w");
